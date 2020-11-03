@@ -9,6 +9,9 @@ router.post('/products', upload.single('photo'), async (req, res) => {
   try {
     const result = await cloudinary.uploader.upload(req.file.path);
     const product = new Product();
+    product.owner = req.body.ownerID;
+    product.category = req.body.categoryID;
+    product.price = req.body.price;
     product.title = req.body.title;
     product.description = req.body.description;
     product.photo = result.secure_url;
@@ -31,7 +34,10 @@ router.post('/products', upload.single('photo'), async (req, res) => {
 
 router.get('/products', async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find()
+      .populate('owner category')
+      .populate('reviews', 'rating')
+      .exec();
     res.json({
       success: true,
       products: products,
@@ -48,7 +54,11 @@ router.get('/products', async (req, res) => {
 
 router.get('/products/:id', async (req, res) => {
   try {
-    const product = await Product.findOne({ _id: req.params.id });
+    const product = await await Product.findOne({
+      _id: req.params.id,
+    })
+      .populate('owner category')
+      .populate('reviews', 'rating');
     res.json({
       success: true,
       product: product,

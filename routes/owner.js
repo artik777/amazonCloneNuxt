@@ -1,13 +1,18 @@
 const router = require('express').Router();
+const cloudinary = require('../utils/cloudinary');
+const upload = require('../utils/multer');
+
 const Owner = require('../models/owner');
 
 //POST api
 
-router.post('/owners', async (req, res) => {
+router.post('/owners', upload.single('photo'), async (req, res) => {
   try {
+    const result = await cloudinary.uploader.upload(req.file.path);
     const owner = new Owner();
     owner.name = req.body.name;
     owner.about = req.body.about;
+    owner.photo = result.secure_url;
     await owner.save();
     res.json({
       success: true,
